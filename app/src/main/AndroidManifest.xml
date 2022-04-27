@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.karasev.workerlog">
-    <uses-permission android:name="android.permission.GET_TASKS"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SHUTDOWN"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.DEVICE_POWER"
+        tools:ignore="ProtectedPermissions" />
+
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -10,27 +18,43 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.WorkerLog">
-        <service android:enabled="true"
+        <service
+            android:enabled="true"
             android:name=".BatteryLevelReceiver" />
+
         <receiver
             android:name=".AutoStart"
-            android:enabled="true"
-            android:permission="android.permission.RECEIVE_BOOT_COMPLETED"
             android:exported="true">
-
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-
         </receiver>
+
+        <receiver
+            android:name=".Restart"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+
+            <intent-filter>
+                <category android:name="android.intent.category.DEFAULT" />
+
+
+                <action android:name="android.intent.action.REBOOT" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWEROFF" />
+                <action android:name="android.intent.action.ACTION_SHUTDOWN" />
+            </intent-filter>
+        </receiver>
+
+
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
-
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

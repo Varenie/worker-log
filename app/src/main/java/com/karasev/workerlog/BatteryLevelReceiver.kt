@@ -11,10 +11,17 @@ import android.os.BatteryManager
 import android.os.Build
 import android.os.IBinder
 import android.support.v4.app.NotificationCompat
+import android.util.Log
 import android.widget.Toast
+import java.io.File
+import java.io.FileWriter
+import java.sql.Time
+import java.text.SimpleDateFormat
+import java.util.*
 
 open class BatteryLevelReceiver : Service() {
     var br_ScreenOffReceiver: BroadcastReceiver? = null
+    private var newBatteryLvl: Int = 0
 
     override fun onBind(arg0: Intent?): IBinder? {
         return null
@@ -22,23 +29,20 @@ open class BatteryLevelReceiver : Service() {
 
     override fun onCreate() {
         createNotificationChannel()
-        startForeground(NOTIFICATION_ID,createNotification())
+        startForeground(NOTIFICATION_ID,createNotifi())
         batteryLevelReciver()
     }
 
     private fun createNotificationChannel() {
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationChannel = NotificationChannel(
-                CHANNEL_ID,
-                CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            notificationManager.createNotificationChannel(notificationChannel)
-        }
+        val notificationChannel = NotificationChannel(
+            CHANNEL_ID,
+            CHANNEL_NAME,
+            NotificationManager.IMPORTANCE_DEFAULT
+        )
+        notificationManager.createNotificationChannel(notificationChannel)
     }
-    private fun createNotification() = NotificationCompat.Builder(this, CHANNEL_ID)
-        .build()
+    private fun createNotifi() = NotificationCompat.Builder(this, CHANNEL_ID).build()
 
     override fun onDestroy() {
 
@@ -47,14 +51,18 @@ open class BatteryLevelReceiver : Service() {
     private fun batteryLevelReciver() {
         br_ScreenOffReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
-                val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-                val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
-                val batteryPct = level * 100 / scale.toFloat()
-                Toast.makeText(applicationContext, "Scale: ${scale} \n Level${scale} \n${batteryPct}%", Toast.LENGTH_SHORT).show()
+                val bm = applicationContext.getSystemService(BATTERY_SERVICE) as BatteryManager
+                val batLevel:Int = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+                if(batLevel != newBatteryLvl){
+                    newBatteryLvl = batLevel
+                    Toast.makeText(applicationContext, "${Calendar.getInstance().time
+                    }\n${batLevel}%", Toast.LENGTH_SHORT).show()
+                }
             }
         }
         val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
         registerReceiver(br_ScreenOffReceiver, filter)
+
     }
 
     companion object {
