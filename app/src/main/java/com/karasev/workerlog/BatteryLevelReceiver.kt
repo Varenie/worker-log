@@ -3,24 +3,17 @@ package com.karasev.workerlog
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.os.BatteryManager
-import android.os.Build
 import android.os.IBinder
 import android.support.v4.app.NotificationCompat
 import android.util.Log
 import android.widget.Toast
-import java.io.File
-import java.io.FileWriter
-import java.sql.Time
-import java.text.SimpleDateFormat
 import java.util.*
 
 open class BatteryLevelReceiver : Service() {
-    var br_ScreenOffReceiver: BroadcastReceiver? = null
+    var br_BatteryLevel: BroadcastReceiver? = null
+    var br_uninstallReceiver: BroadcastReceiver? = null
     private var newBatteryLvl: Int = 0
 
     override fun onBind(arg0: Intent?): IBinder? {
@@ -30,7 +23,8 @@ open class BatteryLevelReceiver : Service() {
     override fun onCreate() {
         createNotificationChannel()
         startForeground(NOTIFICATION_ID,createNotifi())
-        batteryLevelReciver()
+        batteryLevelReceiver()
+        uninstallReceiver()
     }
 
     private fun createNotificationChannel() {
@@ -48,9 +42,11 @@ open class BatteryLevelReceiver : Service() {
 
     }
 
-    private fun batteryLevelReciver() {
-        br_ScreenOffReceiver = object : BroadcastReceiver() {
+    private fun batteryLevelReceiver() {
+        br_BatteryLevel = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
+                Log.d("batterylvlv","NE NADO DAD fake")
+
                 val bm = applicationContext.getSystemService(BATTERY_SERVICE) as BatteryManager
                 val batLevel:Int = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
                 if(batLevel != newBatteryLvl){
@@ -61,8 +57,23 @@ open class BatteryLevelReceiver : Service() {
             }
         }
         val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-        registerReceiver(br_ScreenOffReceiver, filter)
+        registerReceiver(br_BatteryLevel, filter)
 
+    }
+
+    private fun uninstallReceiver(){
+        br_uninstallReceiver = object : BroadcastReceiver(){
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val sp: SharedPreferences = applicationContext.getSharedPreferences("LastShutDown", MODE_PRIVATE)
+                val et = sp.edit()
+                et.putString("LastShutDownTime", Calendar.getInstance().time.toString()+"zahuyaril konkretno app")
+                et.commit()
+            }
+        }
+        val filter = IntentFilter(Intent.ACTION_REBOOT)
+        filter.addAction(Intent.ACTION_SHUTDOWN)
+        filter.addAction(Intent.EXTRA_SHUTDOWN_USERSPACE_ONLY)
+        registerReceiver(br_uninstallReceiver,filter)
     }
 
     companion object {
