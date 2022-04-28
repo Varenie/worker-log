@@ -3,19 +3,26 @@ package com.karasev.workerlog
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
-import android.content.*
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.BatteryManager
+import android.os.Binder
 import android.os.IBinder
-import android.support.v4.app.NotificationCompat
-import android.util.Log
-import android.widget.Toast
-import java.util.*
+import androidx.core.app.NotificationCompat
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import java.util.concurrent.TimeUnit
 
-open class BatteryLevelReceiver : Service() {
+open class ForegroundServices : Service() {
     var br_BatteryLevel: BroadcastReceiver? = null
     var br_turnOffReceiver: BroadcastReceiver? = null
-    var br_turnOnReceiver: BroadcastReceiver? = null
+    var br_uninstallReceiver: BroadcastReceiver? = null
     private var newBatteryLvl: Int = 0
+
 
     override fun onBind(arg0: Intent?): IBinder? {
         return null
@@ -26,7 +33,8 @@ open class BatteryLevelReceiver : Service() {
         startForeground(NOTIFICATION_ID, createNotifi())
         batteryLevelReceiver()
         turnOffReceiver()
-        turnOnReceiver()
+        uninstallReceiver()
+
     }
 
     private fun createNotificationChannel() {
@@ -41,22 +49,17 @@ open class BatteryLevelReceiver : Service() {
 
     private fun createNotifi() = NotificationCompat.Builder(this, CHANNEL_ID).build()
 
-    override fun onDestroy() {
-
-    }
+    override fun onDestroy() {}
 
     private fun batteryLevelReceiver() {
         br_BatteryLevel = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 val bm = applicationContext.getSystemService(BATTERY_SERVICE) as BatteryManager
                 val batLevel: Int = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
-                val fileManager = FileManager()
-                Log.d("batterylvlv",batLevel.toString() +"\n"+newBatteryLvl)
                 if (batLevel != newBatteryLvl) {
                     newBatteryLvl = batLevel
-                    fileManager.writeFile(
-                        ": Battery level ${batLevel}%",
-                        applicationContext
+                    FileManager().writeFile(
+                        ": Battery level ${batLevel}%"
                     )
                 }
             }
@@ -70,10 +73,8 @@ open class BatteryLevelReceiver : Service() {
     private fun turnOffReceiver() {
         br_turnOffReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                val fileManager = FileManager()
-                fileManager.writeFile(
-                    ": Phone turn off",
-                    applicationContext
+                FileManager().writeFile(
+                    ": Phone turn off"
                 )
             }
         }
@@ -83,19 +84,22 @@ open class BatteryLevelReceiver : Service() {
         registerReceiver(br_turnOffReceiver, filter)
     }
 
-    private fun turnOnReceiver() {
-        br_turnOnReceiver = object : BroadcastReceiver() {
+    private fun uninstallReceiver() {
+        br_uninstallReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-
+                FileManager().writeFile(
+                    ": App uninstall"
+                )
             }
         }
-        val filter = IntentFilter(Intent.ACTION_BOOT_COMPLETED)
-        registerReceiver(br_turnOnReceiver, filter)
+        val filter = IntentFilter(Intent.ACTION_PACKAGE_REMOVED)
+        registerReceiver(br_uninstallReceiver, filter)
     }
 
+
     companion object {
-        private const val CHANNEL_ID = "channel_id"
+        private const val CHANNEL_ID = "while_in_use_channel_01"
         private const val CHANNEL_NAME = "channel_name"
-        private const val NOTIFICATION_ID = 1
+        private const val NOTIFICATION_ID = 112233
     }
 }
