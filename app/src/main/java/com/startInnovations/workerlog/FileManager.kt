@@ -1,7 +1,6 @@
-package com.karasev.workerlog
+package com.startInnovations.workerlog
 
 import android.os.Environment
-import android.util.Log
 import java.io.File
 import java.io.FileInputStream
 import java.util.*

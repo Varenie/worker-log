@@ -1,4 +1,4 @@
-package com.karasev.workerlog
+package com.startInnovations.workerlog
 
 import org.junit.Test
 

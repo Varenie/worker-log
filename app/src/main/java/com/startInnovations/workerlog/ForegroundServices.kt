@@ -1,5 +1,6 @@
-package com.karasev.workerlog
+package com.startInnovations.workerlog
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
@@ -7,34 +8,75 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.BatteryManager
-import android.os.Binder
-import android.os.IBinder
+import android.content.pm.PackageManager
+import android.os.*
 import androidx.core.app.NotificationCompat
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import java.util.concurrent.TimeUnit
 
 open class ForegroundServices : Service() {
     var br_BatteryLevel: BroadcastReceiver? = null
     var br_turnOffReceiver: BroadcastReceiver? = null
-    var br_uninstallReceiver: BroadcastReceiver? = null
+
     private var newBatteryLvl: Int = 0
 
+    private var fusedLocationClient: FusedLocationProviderClient? = null
+    private var locationRequest: LocationRequest? = null
+    private var locationCallback: LocationCallback? = null
 
     override fun onBind(arg0: Intent?): IBinder? {
         return null
     }
+
+
 
     override fun onCreate() {
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, createNotifi())
         batteryLevelReceiver()
         turnOffReceiver()
-        uninstallReceiver()
+        LocationListener()
+    }
 
+    private fun LocationListener() {
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        locationRequest = LocationRequest.create().apply {
+            interval = TimeUnit.SECONDS.toMillis(2)
+            fastestInterval = TimeUnit.SECONDS.toMillis(1)
+            maxWaitTime = TimeUnit.SECONDS.toMillis(15)
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
+
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                if (locationResult.equals(null)) {
+                    return
+                }
+                for (location in locationResult.locations) {
+                    val Lat = java.lang.String.valueOf(location.latitude)
+                    val Lon = java.lang.String.valueOf(location.longitude)
+                    FileManager().writeFile(": Location $Lat - $Lon")
+                }
+            }
+
+        }
+        startLocationUpdates()
+    }
+
+    private fun startLocationUpdates() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+        }
+        fusedLocationClient!!.requestLocationUpdates(
+            locationRequest!!,
+            locationCallback!!,
+            Looper.getMainLooper()
+        )
     }
 
     private fun createNotificationChannel() {
@@ -84,22 +126,9 @@ open class ForegroundServices : Service() {
         registerReceiver(br_turnOffReceiver, filter)
     }
 
-    private fun uninstallReceiver() {
-        br_uninstallReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                FileManager().writeFile(
-                    ": App uninstall"
-                )
-            }
-        }
-        val filter = IntentFilter(Intent.ACTION_PACKAGE_REMOVED)
-        registerReceiver(br_uninstallReceiver, filter)
-    }
-
-
     companion object {
         private const val CHANNEL_ID = "while_in_use_channel_01"
         private const val CHANNEL_NAME = "channel_name"
-        private const val NOTIFICATION_ID = 112233
+        private const val NOTIFICATION_ID = 112243
     }
 }

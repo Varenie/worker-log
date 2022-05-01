@@ -1,4 +1,4 @@
-package com.karasev.workerlog
+package com.startInnovations.workerlog
 
 import android.content.BroadcastReceiver
 import android.content.Context

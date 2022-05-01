@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.karasev.workerlog">
+    package="com.startInnovations.workerlog">
+
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="29"/>
@@ -11,6 +12,8 @@
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 
 
 
@@ -23,13 +26,13 @@
         android:theme="@style/Theme.WorkerLog"
         android:requestLegacyExternalStorage="true">
         <service
-            android:name=".ForegroundServices"
+            android:name="com.startInnovations.workerlog.ForegroundServices"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="location"/>
 
         <receiver
-            android:name=".AutoStart"
+            android:name="com.startInnovations.workerlog.AutoStart"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.PACKAGE_REMOVED"/>
@@ -39,7 +42,7 @@
         </receiver>
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.startInnovations.workerlog.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
