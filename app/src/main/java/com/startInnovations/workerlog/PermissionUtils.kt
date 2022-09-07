@@ -39,13 +39,25 @@ class PermissionUtils {
         return false
     }
 
+    fun checkPermissionsReapPhone(context: Context): Boolean {
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.READ_PHONE_STATE
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            return true
+        }
+        return false
+    }
+
     fun requestPermissions(activity: Activity, requestCode: Int) {
         ActivityCompat.requestPermissions(
             activity,
             arrayOf(
                 Manifest.permission.ACCESS_COARSE_LOCATION,
                 Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_PHONE_STATE),
             requestCode
         )
     }
