@@ -1,6 +1,5 @@
 package com.startInnovations.workerlog
 
-import android.os.Build
 import android.os.Environment
 import java.io.File
 import java.io.FileInputStream
@@ -26,10 +25,6 @@ class FileManager {
         ).bufferedReader().use { it.readText() }
 
     private fun getFile(): File {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "log.txt")
-        } else {
-            File(Environment.getExternalStorageDirectory(), "log.txt")
-        }
+        return File(Environment.getExternalStorageDirectory(), "log.txt")
     }
 }

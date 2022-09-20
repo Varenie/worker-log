@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.*
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.*
 import java.util.concurrent.TimeUnit

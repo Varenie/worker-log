@@ -2,19 +2,23 @@ package com.startInnovations.workerlog
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Environment
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import kotlin.Boolean as Boolean
 
 class PermissionUtils {
+    private var isAlreadyBeThisDialog = false
 
     fun checkPermissionsStorage(context: Context): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             Environment.isExternalStorageManager()
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        } else
             (ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -23,9 +27,6 @@ class PermissionUtils {
                 context,
                 Manifest.permission.READ_EXTERNAL_STORAGE
             ) == PackageManager.PERMISSION_GRANTED)
-        } else {
-            true
-        }
     }
 
     fun checkPermissionsLocation(context: Context): Boolean {
@@ -66,6 +67,41 @@ class PermissionUtils {
                 Manifest.permission.READ_PHONE_STATE),
             requestCode
         )
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !isAlreadyBeThisDialog) {
+//            checkBackgroundLocationPermissionAPI30(requestCode, activity)
+//            isAlreadyBeThisDialog = true
+//            checkExternalStoragePermissionAPI30(requestCode, activity)
+//        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun checkBackgroundLocationPermissionAPI30(requestCode: Int, activity: Activity) {
+        if (checkBackgroundLocationPermission(activity)) return
+        AlertDialog.Builder(activity)
+            .setTitle("Доступ к геолокации")
+            .setMessage("Перети в настройки для разрешения доступа к геолокации в фоне?")
+            .setPositiveButton("Да") { _,_ ->
+                // this request will take user to Application's Setting page
+                requestPermissionBackground(arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), requestCode, activity)
+            }
+            .setNegativeButton("Нет") { dialog,_ ->
+                dialog.dismiss()
+            }
+            .create()
+            .show()
+
+    }
+
+    private fun requestPermissionBackground(arrayOf: Array<String>, requestCode: Int, activity: Activity) {
+        ActivityCompat.requestPermissions(activity, arrayOf, requestCode)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    fun checkBackgroundLocationPermission(context: Context): Boolean {
+        return ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
 }
